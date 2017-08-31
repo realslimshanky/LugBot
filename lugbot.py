@@ -25,6 +25,7 @@ help_text="""
 [ x ] /twitter     --> Link to the ILUG-D Twitter
 [ x ] /facebook    --> Facebook page of ILUG-D
 [ x ] /mailinglist --> Link to the mailing list for ILUG-D
+[ x ] /nextmeetup  --> Next/Current meetup page link
 """
 
 def newMembers(bot, update):
@@ -41,31 +42,9 @@ def nextmeetup(bot, update):
         sleep(0.2)
         r=requests.get('http://api.meetup.com/ILUGDelhi/events', params=meetupApi)
         event_link=r.json()[0]['link']
-        date_time=r.json()[0]['time']//1000
-        utc_dt = utc.localize(datetime.utcfromtimestamp(date_time))
-        indian_tz = timezone('Asia/Kolkata')
-        date_time=utc_dt.astimezone(indian_tz)
-        date_time=date_time.strftime('%Y-%m-%d %H:%M:%S %Z%z')
-        if 'venue' in r.json()[0]:
-                venue=r.json()[0]['venue']['address_1']
-                bot.sendLocation(chat_id=update.message.chat_id, latitude=r.json()[0]['venue']['lat'],longitude=r.json()[0]['venue']['lon'])
-        else:
-                venue='Venue is still to be decided'
         bot.sendMessage(chat_id=update.message.chat_id, text='''
-Next Meetup
-Date/Time : %s
-Venue : %s
 Event Page : %s
-'''%(date_time, venue, event_link))
-
-def nextmeetups(bot, update):
-        bot.sendChatAction(chat_id=update.message.chat_id, action=ChatAction.TYPING)
-        sleep(0.2)
-        r=requests.get('http://api.meetup.com/ILUGDelhi/events', params=meetupApi)
-        bot.sendMessage(chat_id=update.message.chat_id, text='''
-Next Meetup Schedule
-%s
-'''%(re.sub('</a>','',re.sub('<a href="','',re.sub('<br/>',' ',re.sub('<p>',' ',re.sub('</p>','\n',r.json()[0]['description'])))))),parse_mode='HTML')
+'''%(event_link))
 
 def invitelink(bot, update):
     bot.sendChatAction(chat_id=update.message.chat_id,
@@ -93,7 +72,6 @@ def help(bot, update):
     
 
 dispatcher.add_handler(CommandHandler('nextmeetup', nextmeetup))
-dispatcher.add_handler(CommandHandler('nextmeetupschedule', nextmeetups))
 dispatcher.add_handler(CommandHandler('twitter',twitter))
 dispatcher.add_handler(CommandHandler('invitelink',invitelink))
 dispatcher.add_handler(CommandHandler('facebook',facebook))
